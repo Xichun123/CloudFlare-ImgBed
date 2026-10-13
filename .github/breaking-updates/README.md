@@ -10,6 +10,10 @@ This feature changes a workflow file. Existing forks may need to use GitHub's **
 
 此功能本身会修改 workflow 文件。由于仓库令牌可能无权自动更新 workflow，现有 Fork 可能需要先在 GitHub 页面手动点击一次 **Sync fork**，保护机制才会正式生效。在发布第一项受保护的破坏性更新前，应先公告此次上线，并为用户预留同步新 workflow 的时间。
 
+For automatic synchronization of future workflow changes, configure the repository Actions secret `UPSTREAM_SYNC_TOKEN`. A fine-grained personal access token should select only the fork and grant **Contents: Read and write** and **Workflows: Read and write**. A classic token needs the `repo` and `workflow` scopes. Checkout and upstream synchronization both use this secret when present, falling back to `GITHUB_TOKEN` otherwise. The default token cannot update workflow files even with `contents: write` and `actions: write`; manually syncing the fork only resolves the currently pending workflow changes.
+
+如需自动同步后续的 workflow 变更，请配置仓库 Actions Secret `UPSTREAM_SYNC_TOKEN`。建议使用仅选择当前 Fork 的 fine-grained personal access token，并授予 **Contents: Read and write** 和 **Workflows: Read and write**；classic token 则需要 `repo` 和 `workflow` scopes。Checkout 与上游同步均优先使用该 Secret，未配置时回退到 `GITHUB_TOKEN`。即使声明 `contents: write` 和 `actions: write`，默认 token 仍无法更新 workflow 文件；手动同步 Fork 只能解决当前待同步的 workflow 变更。
+
 ## Manifest format / 清单格式
 
 ```json

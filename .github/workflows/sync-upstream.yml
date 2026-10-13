@@ -32,6 +32,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Check breaking update policy
         id: breaking_guard
@@ -50,7 +51,7 @@ jobs:
           upstream_sync_repo: MarSeventh/CloudFlare-ImgBed
           upstream_sync_branch: main
           target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+          target_repo_token: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
           test_mode: false
 
       - name: Complete breaking update notices
@@ -71,14 +72,14 @@ jobs:
           {
             echo "## ⚠️ 上游同步未完成 / Upstream synchronization did not complete"
             echo
-            echo "上游同步步骤未能完成。若上游近期修改了 workflow 文件，GitHub 可能会暂停包含 workflow 变更的自动同步；也可能是当前 Fork 的 Actions 权限或同步权限发生了变化。"
+            echo "如果日志提示缺少 workflows permission，请配置仓库 Secret UPSTREAM_SYNC_TOKEN：fine-grained PAT 只选择当前 Fork，并授予 Contents 和 Workflows 的 Read and write 权限；classic PAT 需要 repo 和 workflow scopes。默认 GITHUB_TOKEN 无法通过 workflow permissions 获得此权限。"
             echo
-            echo "The upstream synchronization step could not be completed. If the upstream workflow files changed recently, GitHub may pause automatic synchronization that includes workflow changes. The issue may also be related to Actions or synchronization permissions in this fork."
+            echo "If the log reports missing workflows permission, configure the repository secret UPSTREAM_SYNC_TOKEN: select only this fork for a fine-grained PAT and grant Contents and Workflows read/write permissions, or use a classic PAT with repo and workflow scopes. Workflow permissions cannot grant this capability to the default GITHUB_TOKEN."
             echo
-            echo "建议先在 GitHub 页面手动执行一次 **Sync fork**，确认 Actions 具有读写权限后，再重新运行本工作流。"
+            echo "临时恢复方法：手动执行一次 **Sync fork**，再重新运行本工作流。后续上游再次修改 workflow 时，仍需要 UPSTREAM_SYNC_TOKEN 才能自动同步。"
             echo
-            echo "Please manually use **Sync fork** on GitHub, confirm that Actions has read and write permissions, and then rerun this workflow."
+            echo "To recover temporarily, manually use **Sync fork**, then rerun this workflow. Future upstream workflow changes still require UPSTREAM_SYNC_TOKEN for automatic synchronization."
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "[Error] 上游同步未能完成。若上游近期修改了 workflow 文件，请先在 GitHub 页面手动执行一次 Sync Fork，然后重新运行本工作流。"
-          echo "[Error] The upstream sync could not be completed. If the upstream workflow files changed recently, manually run Sync Fork on GitHub and then rerun this workflow."
+          echo "::error::上游同步失败。若日志提示缺少 workflows permission，请配置 UPSTREAM_SYNC_TOKEN；参见本次运行的 Summary。"
+          echo "::error::Upstream sync failed. If the log reports missing workflows permission, configure UPSTREAM_SYNC_TOKEN; see this run's summary."
           exit 1
